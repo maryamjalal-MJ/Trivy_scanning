@@ -19,7 +19,7 @@ jobs:
       - name: Build DVWA Docker image
         run: docker build -t dvwa .
       - name: Run Trivy security scan
-        uses: aquasecurity/trivy-action@v0.7.0
+        uses: aquasecurity/trivy-action@v0.29.0
         with:
           image-ref: dvwa
           severity: 'CRITICAL,HIGH'
