@@ -1,6 +1,5 @@
 name: Trivy scan for DVWA
-
-on:
+'on':
   push:
     branches:
       - main
@@ -8,46 +7,59 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 0 * * *'  # Runs every day at midnight
-
+    - cron: 0 0 * * *
 jobs:
   security-scan:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Set up Docker
-        run: |
+        run: >
           sudo apt-get update
+
           sudo apt-get remove -y containerd
+
           sudo apt-get install -y ca-certificates curl gnupg
+
           sudo install -m 0755 -d /etc/apt/keyrings
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/keyrings/docker.asc > /dev/null
+
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee
+          /etc/apt/keyrings/docker.asc > /dev/null
+
           sudo chmod a+r /etc/apt/keyrings/docker.asc
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+          echo "deb [arch=$(dpkg --print-architecture)
+          signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" |
+          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
           sudo apt-get update
+
           sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
       - name: Install Trivy
-        run: |
-          sudo apt-get install wget -y
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_amd64.deb
-          sudo dpkg -i trivy_amd64.deb
+        run: >
+          sudo apt-get update
 
+          sudo apt-get install -y wget curl jq
+
+          TRIVY_VERSION=$(curl -s
+          https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq
+          -r .tag_name)
+
+          wget
+          "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_$(dpkg
+          --print-architecture).deb"
+
+          sudo dpkg -i "trivy_$(dpkg --print-architecture).deb"
       - name: Build DVWA Docker Image
         run: docker build -t dvwa .
-
       - name: Run Trivy Image Scan
-        run: trivy image --exit-code 1 --severity CRITICAL,HIGH dvwa
-
+        run: 'trivy image --exit-code 1 --severity CRITICAL,HIGH dvwa'
       - name: Run DVWA Container
-        run: docker run -d --name dvwa -p 80:80 dvwa
-
+        run: 'docker run -d --name dvwa -p 80:80 dvwa'
       - name: Check Running Containers
         run: docker ps
-
       - name: Stop and Remove DVWA Container
         run: |
           docker stop dvwa
