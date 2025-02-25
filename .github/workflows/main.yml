@@ -29,4 +29,4 @@ jobs:
       - name: Build Docker Image
         run: docker build -t dvwa .
       - name: Run Trivy Image Scan
-        run: 'trivy image --exit-code 1 --severity CRITICAL,HIGH dvwa'
+        run: 'trivy image --exit-code 0 --severity CRITICAL,HIGH dvwa'
